@@ -1,3 +1,4 @@
+import Container from './container';
 import Pimple from './pimple';
 import ServiceProvider from './serviceProvider';
-export { Pimple, ServiceProvider };
+export { Container, Pimple, ServiceProvider };
