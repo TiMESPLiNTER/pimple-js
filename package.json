@@ -1,7 +1,7 @@
 {
   "name": "@timesplinter/pimple",
   "license": "LGPL-3.0-or-later",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "module": "./lib/esm/index.js",
   "main": "./lib/cjs/index.js",
   "scripts": {
