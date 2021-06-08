@@ -1,5 +1,6 @@
 "use strict";
 
+import Container from "./container";
 import ServiceProvider from "./serviceProvider";
 
 /** Declaration types */
@@ -24,7 +25,7 @@ const reservedProperties: string[] = [
  * @license LGPL
  * @version 3.0.0
  */
-export default class Pimple 
+export default class Pimple implements Container
 {
     /**
      * @type {string}
@@ -104,6 +105,13 @@ export default class Pimple
             return this._definitions[name](this);
         }
         return this._definitions[name];
+    }
+
+    /**
+     * Checks whether a service is registered or not
+     */
+    public has(service: string): boolean {
+        return service in this._definitions;
     }
 
     /**

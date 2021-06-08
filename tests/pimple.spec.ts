@@ -34,6 +34,22 @@ describe('pimple container', () => {
         expect(container.get('foo')).toBe(container.get('foo'));
     });
 
+    it('returns true if service exists', async () => {
+        const container = new Pimple();
+
+        container.set('foo', () => {
+            return 42;
+        });
+
+        expect(container.has('foo')).toBe(true);
+    });
+
+    it('returns true if service exists', async () => {
+        const container = new Pimple();
+
+        expect(container.has('foo')).toBe(false);
+    });
+
     it('protects function', async () => {
         const container = new Pimple();
 

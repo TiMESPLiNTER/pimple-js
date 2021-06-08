@@ -12,7 +12,7 @@ and the original PHP Pimple container by Fabien Potencier.
 ```js
 import Pimple from '@timesplinter/pimple';
 
-const container: Pimple = new Pimple({env: 'dev'});
+const container: Container = new Pimple({env: 'dev'});
 
 container.set('foo', (container: Pimple) => {
     return `bar (${container.get('env')})`;

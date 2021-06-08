@@ -1,3 +1,4 @@
+import Container from "./container";
 import ServiceProvider from "./serviceProvider";
 /** Declaration types */
 declare type ServiceDeclaration = Function | Object;
@@ -11,7 +12,7 @@ declare type ProviderDeclaration = Function | ServiceProvider;
  * @license LGPL
  * @version 3.0.0
  */
-export default class Pimple {
+export default class Pimple implements Container {
     /**
      * @type {string}
      */
@@ -41,6 +42,10 @@ export default class Pimple {
      * Get a service instance
      */
     get(name: string): any;
+    /**
+     * Checks whether a service is registered or not
+     */
+    has(service: string): boolean;
     /**
      * Register a protected function
      */
