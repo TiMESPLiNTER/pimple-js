@@ -1,17 +1,18 @@
 {
   "name": "pimple",
+  "license": ["LGPL"],
   "module": "ES6",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "test": "jest",
     "coverage": "jest --collect-coverage",
-    "compile": "tsc -p tsconfig.json"
+    "compile": "tsc -p tsconfig.json",
+    "prepublish": "npm run compile"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Pascal Münst <dev@timesplinter.ch>",
+  "description": "A simple dependency-injection container written in TypeScript based on PHP's Pimple",
   "devDependencies": {
     "@babel/core": "^7.14.3",
     "@babel/preset-env": "^7.14.4",
