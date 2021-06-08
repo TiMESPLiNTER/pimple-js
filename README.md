@@ -10,7 +10,7 @@ and the original PHP Pimple container by Fabien Potencier.
 ## Usage
 
 ```js
-import Pimple from './pimple';
+import Pimple from '@timesplinter/pimple';
 
 const container: Pimple = new Pimple({env: 'dev'});
 
@@ -21,9 +21,9 @@ container.set('foo', (container: Pimple) => {
 console.log(container.get('foo')); // 'bar (dev)';
 ```
 
-## Compile/transpile
+## Transpiling
 ```bash
-$ npm run compile
+$ npm run transpile
 ```
 
 ## Tests

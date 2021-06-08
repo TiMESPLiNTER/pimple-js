@@ -24,6 +24,16 @@ describe('pimple container', () => {
         expect(container.get('foo')).toBe('baz');
     });
 
+    it('resolves function only once', async () => {
+        const container = new Pimple();
+
+        container.set('foo', () => {
+            return Math.random();
+        });
+
+        expect(container.get('foo')).toBe(container.get('foo'));
+    });
+
     it('protects function', async () => {
         const container = new Pimple();
 

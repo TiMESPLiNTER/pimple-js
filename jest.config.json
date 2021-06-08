@@ -2,7 +2,7 @@
     "coverageDirectory": "./build/coverage",
     "coverageThreshold": {
         "global": {
-            "branches": 76,
+            "branches": 80,
             "functions": 88,
             "lines": 93,
             "statements": 93
