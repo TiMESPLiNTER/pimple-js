@@ -7,6 +7,7 @@ declare type ProviderDeclaration = Function | ServiceProvider;
  *
  * @copyright 2011 M.PARAISO <mparaiso@online.fr>
  * @copyright 2016 SerafimArts <nesk@xakep.ru>
+ * @copyright 2021 TiMESPLiNTER <dev@timesplinter.ch>
  * @license LGPL
  * @version 3.0.0
  */

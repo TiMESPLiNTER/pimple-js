@@ -1,9 +1,8 @@
 {
   "name": "@timesplinter/pimple",
   "license": "LGPL",
-  "module": "ES6",
   "version": "1.0.0",
-  "main": "index.js",
+  "module": "./lib/esm/index.js",
   "scripts": {
     "test": "jest",
     "coverage": "jest --collect-coverage",
