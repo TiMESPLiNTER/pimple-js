@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+      "target": "es6",
+      "module": "ES2020",
+      "strict": true,
+      "esModuleInterop": true,
+      "noImplicitAny": true,
+      "declaration": true,
+      "sourceMap": true,
+      "experimentalDecorators": true,
+      "forceConsistentCasingInFileNames": true,
+      "moduleResolution": "node",
+      "outDir": "lib",
+      "baseUrl": "."
+  },
+  "include": [
+      "src/"
+  ]
+}
