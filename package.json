@@ -1,5 +1,5 @@
 {
-  "name": "pimple",
+  "name": "@timesplinter/pimple",
   "license": "LGPL",
   "module": "ES6",
   "version": "1.0.0",
