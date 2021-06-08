@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-      "target": "es6",
+      "target": "ES2015",
       "module": "ES2020",
       "strict": true,
       "esModuleInterop": true,
@@ -10,7 +10,7 @@
       "experimentalDecorators": true,
       "forceConsistentCasingInFileNames": true,
       "moduleResolution": "node",
-      "outDir": "lib",
+      "outDir": "./lib/esm",
       "baseUrl": "."
   },
   "include": [
