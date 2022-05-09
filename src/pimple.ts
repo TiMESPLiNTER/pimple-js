@@ -100,10 +100,11 @@ export default class Pimple implements Container
     /**
      * Get a service instance
      */
-    public get(name: string): any {
+    public get<T>(name: string): T {
         if (this._definitions[name] instanceof Function) {
             return this._definitions[name](this);
         }
+
         return this._definitions[name];
     }
 
