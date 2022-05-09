@@ -41,7 +41,7 @@ export default class Pimple implements Container {
     /**
      * Get a service instance
      */
-    get(name: string): any;
+    get<T>(name: string): T;
     /**
      * Checks whether a service is registered or not
      */

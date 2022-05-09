@@ -1,4 +1,4 @@
 export default interface Container {
-    get(service: string): any;
+    get<T>(service: string): T;
     has(service: string): boolean;
 }
