@@ -149,10 +149,6 @@ export default class Pimple<T> implements Container<T>
      * Get a service raw definition
      */
     public raw<K extends ServiceKey<T>>(name: K): ServiceDefinition<T, T[K]> {
-        if (!this._raw[name]) {
-            throw new RangeError();
-        }
-
         return this._raw[name] as ServiceDefinition<T, T[K]>;
     }
 
