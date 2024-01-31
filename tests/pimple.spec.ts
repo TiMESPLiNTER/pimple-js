@@ -1,12 +1,17 @@
 import Pimple from '../src/pimple';
 
 describe('pimple container', () => {
-    it('returns container verison', async () => {
+    it('returns container version', async () => {
         expect(Pimple.VERSION).toBe('3.0.0');
     });
 
     it('stores values', async () => {
-        const container = new Pimple({baz: 42});
+        type ServiceMap = {
+            'baz': number,
+            'foo': string,
+        };
+
+        const container = new Pimple<ServiceMap>({baz: 42});
 
         container.set('foo', 'bar');
 
@@ -15,7 +20,12 @@ describe('pimple container', () => {
     });
 
     it('resolves function', async () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            'baz': number,
+            'foo': string,
+        };
+
+        const container = new Pimple<ServiceMap>();
 
         container.set('foo', () => {
             return 'baz';
@@ -25,7 +35,11 @@ describe('pimple container', () => {
     });
 
     it('resolves function only once', async () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            'foo': number,
+        };
+
+        const container = new Pimple<ServiceMap>();
 
         container.set('foo', () => {
             return Math.random();
@@ -35,7 +49,11 @@ describe('pimple container', () => {
     });
 
     it('returns true if service exists', async () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            'foo': number,
+        };
+
+        const container = new Pimple<ServiceMap>();
 
         container.set('foo', () => {
             return 42;
@@ -45,40 +63,58 @@ describe('pimple container', () => {
     });
 
     it('returns true if service exists', async () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            'foo': number,
+        };
+
+        const container = new Pimple<ServiceMap>();
 
         expect(container.has('foo')).toBe(false);
     });
 
     it('protects function', async () => {
-        const container = new Pimple();
-
-        const protectedFunciton = () => {
-            return 'baz';
+        type ServiceMap = {
+            foo: () => string,
+            untyped: Function,
         };
 
-        container.set('foo', container.protect(protectedFunciton));
+        const container = new Pimple<ServiceMap>();
 
-        expect(container.get('foo')).toBe(protectedFunciton);
+        const typeProtectedFunction = () => 'baz';
+        const untypedProtectedFunction = () => 42;
+
+        container.set('foo', container.protect('foo', typeProtectedFunction));
+        container.set('untyped', container.protect('untyped', untypedProtectedFunction));
+
+        expect(container.get('foo')).toBe(typeProtectedFunction);
+        expect(container.get('untyped')).toBe(untypedProtectedFunction);
     });
 
     it('returns original function', async () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            foo: string,
+        };
 
-        const protectedFunciton = () => {
+        const container = new Pimple<ServiceMap>();
+
+        const protectedFunction = () => {
             return 'baz';
         };
 
-        container.set('foo', protectedFunciton);
+        container.set('foo', protectedFunction);
 
-        expect(container.raw('foo')).toBe(protectedFunciton);
+        expect(container.raw('foo')).toBe(protectedFunction);
     });
 
     it('registers services defined in service provider', async () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            'foo': string,
+        }
+
+        const container = new Pimple<ServiceMap>();
 
         const serviceProviderMock = {
-            register: (container: Pimple) => {
+            register: (container: Pimple<ServiceMap>) => {
                 container.set('foo', () => {
                     return 'baz'
                 });
@@ -91,9 +127,13 @@ describe('pimple container', () => {
     });
 
     it('registers services defined in function', async () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            foo: string,
+        }
 
-        const serviceProviderMock = (container: Pimple) => {
+        const container = new Pimple<ServiceMap>();
+
+        const serviceProviderMock = (container: Pimple<ServiceMap>) => {
             container.set('foo', () => {
                 return 'baz'
             });
@@ -105,7 +145,11 @@ describe('pimple container', () => {
     });
 
     it('returns new instance from factory', async () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            foo: number,
+        }
+
+        const container = new Pimple<ServiceMap>();
 
         container.factory('foo', () => {
             return Math.random();
@@ -115,7 +159,11 @@ describe('pimple container', () => {
     });
 
     it('throws exception on extending an undefined service', () => {
-        const container = new Pimple();
+        type ServiceMap = {
+            foo: string,
+        }
+
+        const container = new Pimple<ServiceMap>();
 
         expect(() => {
             container.extend('foo', () => {});
@@ -123,13 +171,17 @@ describe('pimple container', () => {
     });
 
     it('extends service', () => {
-        const container = new Pimple({
+        type ServiceMap = {
+            foo: string,
+        }
+
+        const container = new Pimple<ServiceMap>({
             foo: () => {
                 return 'baz';
             }
         });
 
-        container.extend('foo', (initialService: string, container: Pimple) => {
+        container.extend('foo', (initialService: string, container: Pimple<ServiceMap>) => {
             return initialService + 'bar';
         });
 

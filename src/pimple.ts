@@ -1,11 +1,14 @@
 "use strict";
 
-import Container from "./container";
+import Container, {ServiceKey} from "./container";
 import ServiceProvider from "./serviceProvider";
 
 /** Declaration types */
-type ServiceDeclaration  = Function|Object;
-type ProviderDeclaration = Function|ServiceProvider;
+type ProviderDeclaration<T> = Function|ServiceProvider<T>;
+type LazyServiceDefinition<T, S> = (container: Pimple<T>) => S;
+type ProtectedServiceDefinition<T, S> = () => LazyServiceDefinition<T, S>;
+type ServiceDefinition<T, S> = LazyServiceDefinition<T, S>|ProtectedServiceDefinition<T, S>|S;
+type ServiceMap<T> = { [key in ServiceKey<T>]: ServiceDefinition<T, T[ServiceKey<T>]> };
 
 /**
  * Reserved names of properties
@@ -25,7 +28,7 @@ const reservedProperties: string[] = [
  * @license LGPL
  * @version 3.0.0
  */
-export default class Pimple implements Container
+export default class Pimple<T> implements Container<T>
 {
     /**
      * @type {string}
@@ -36,31 +39,32 @@ export default class Pimple implements Container
      * @type {{}}
      * @private
      */
-    private _definitions: { [key: string]: any; } = {};
+    private _definitions: Partial<ServiceMap<T>> = {};
 
     /**
      * @type {{}}
      * @private
      */
-    private _raw: { [key: string]: any; } = {};
+    private _raw: Partial<ServiceMap<T>> = {};
 
-    constructor(services: { [key: string]: any; } = {}) {
+    constructor(services: Partial<ServiceMap<T>> = {}) {
         Object.keys(services).forEach((service) => {
-            this.set(service, services[service]);
+            const serviceKey = service as ServiceKey<T>;
+            this.set(serviceKey, services[serviceKey] as T[ServiceKey<T>]);
         }, this);
     }
 
     /**
      * Define a service
      */
-    public set(name: string, service: ServiceDeclaration): Pimple
+    public set<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T,T[K]>): Pimple<T>
     {
         this._raw[name] = service;
 
         this._definitions[name] = service instanceof Function ?
             (function () {
                 let cached: any;
-                return (pimple: Pimple) => {
+                return (pimple: Pimple<T>) => {
                     if (cached === undefined) {
                         cached = service(pimple);
                     }
@@ -68,7 +72,7 @@ export default class Pimple implements Container
                 };
             }()) : service;
 
-        if (reservedProperties.indexOf(name) === -1) {
+        if (reservedProperties.indexOf(name.toString()) === -1) {
             Object.defineProperty(this, name, {
                 get: () => {
                     return this.get(name);
@@ -82,11 +86,11 @@ export default class Pimple implements Container
     /**
      * Register a factory
      */
-    public factory(name: string, callback: Function): Pimple {
+    public factory<K extends ServiceKey<T>>(name: K, callback: ServiceDefinition<T,T[K]>): Pimple<T> {
         this._raw[name]         = callback;
         this._definitions[name] = callback;
 
-        if (reservedProperties.indexOf(name) === -1) {
+        if (reservedProperties.indexOf(name.toString()) === -1) {
             Object.defineProperty(this, name, {
                 get: () => {
                     return this.get(name);
@@ -100,40 +104,38 @@ export default class Pimple implements Container
     /**
      * Get a service instance
      */
-    public get(name: string): any {
+    public get<K extends ServiceKey<T>>(name: K): T[K] {
         if (this._definitions[name] instanceof Function) {
-            return this._definitions[name](this);
+            return (this._definitions[name] as LazyServiceDefinition<T, T[K]>)(this);
         }
-        return this._definitions[name];
+        return this._definitions[name] as T[K];
     }
 
     /**
      * Checks whether a service is registered or not
      */
-    public has(service: string): boolean {
-        return service in this._definitions;
+    public has<K extends ServiceKey<T>>(name: K): boolean {
+        return name in this._definitions;
     }
 
     /**
      * Register a protected function
      */
-    public protect(service: Function): Function {
-        return () => {
-            return service;
-        };
+    public protect<K extends ServiceKey<T>>(key: K, service: T[K]): () => T[K] {
+        return () => service;
     }
 
     /**
      * Extend a service
      */
-    public extend(serviceName: string, service: Function): Function {
+    public extend<K extends ServiceKey<T>>(serviceName: K, service: Function): Function {
         if (!this._definitions[serviceName]) {
             throw new RangeError(`Definition with "${serviceName}" not defined in container.`);
         }
 
-        var def = this._definitions[serviceName];
+        let def = this._definitions[serviceName];
 
-        return this._definitions[serviceName] = (container: Pimple) => {
+        return this._definitions[serviceName] = (container: Pimple<T>) => {
             if (def instanceof Function) {
                 def = def(container);
             }
@@ -144,14 +146,18 @@ export default class Pimple implements Container
     /**
      * Get a service raw definition
      */
-    public raw(name: string): Function {
-        return this._raw[name];
+    public raw<K extends ServiceKey<T>>(name: K): ServiceDefinition<T, T[K]> {
+        if (!this._raw[name]) {
+            throw new RangeError();
+        }
+
+        return this._raw[name] as ServiceDefinition<T, T[K]>;
     }
 
     /**
      * Register a service provider
      */
-    public register(provider: ProviderDeclaration): Pimple {
+    public register(provider: ProviderDeclaration<T>): Pimple<T> {
         if (this.instanceOfServiceProvider(provider) && provider.register instanceof Function) {
             provider.register(this);
             return this;
@@ -165,7 +171,7 @@ export default class Pimple implements Container
         return this;
     }
 
-    private instanceOfServiceProvider(object: any): object is ServiceProvider {
+    private instanceOfServiceProvider(object: any): object is ServiceProvider<T> {
         return 'register' in object;
     }
 }
