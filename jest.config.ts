@@ -2,7 +2,7 @@ import type {Config} from 'jest';
 
 const config: Config = {
     coverageDirectory: "./build/coverage",
-    coverageReporters: ['clover', 'json', 'lcov', ['text', {skipFull: true}]],
+    coverageReporters: ['text', 'html', 'lcov'],
     coverageThreshold: {
         global: {
             "branches": 80,

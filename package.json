@@ -6,7 +6,7 @@
   "main": "./lib/cjs/index.js",
   "scripts": {
     "test": "jest",
-    "coverage": "jest --collect-coverage",
+    "test:cov": "jest --collect-coverage",
     "transpile": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "prepublish": "npm run transpile"
   },
