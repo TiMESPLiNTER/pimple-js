@@ -7,7 +7,8 @@ import ServiceProvider from "./serviceProvider";
 type ProviderDeclaration<T> = (container: Pimple<T>) => void|ServiceProvider<T>;
 type LazyServiceDefinition<T, S> = (container: Pimple<T>) => S;
 type ProtectedServiceDefinition<T, S> = () => LazyServiceDefinition<T, S>;
-type ServiceDefinition<T, S> = LazyServiceDefinition<T, S>|ProtectedServiceDefinition<T, S>|S;
+type PlainServiceDefinition<S> = S extends Function ? () => S : S; // If a function, it needs to be wrapped/protected
+type ServiceDefinition<T, S> = PlainServiceDefinition<S>|LazyServiceDefinition<T, S>|ProtectedServiceDefinition<T, S>|(S extends Function ? () => S : S);
 type ServiceMap<T> = { [key in ServiceKey<T>]: ServiceDefinition<T, T[ServiceKey<T>]> };
 
 /**
@@ -50,7 +51,7 @@ export default class Pimple<T> implements Container<T>
     constructor(services: Partial<ServiceMap<T>> = {}) {
         Object.keys(services).forEach((service) => {
             const serviceKey = service as ServiceKey<T>;
-            this.set(serviceKey, services[serviceKey] as T[ServiceKey<T>]);
+            this.set(serviceKey, services[serviceKey] as ServiceDefinition<T, T[ServiceKey<T>]>);
         }, this);
     }
 
@@ -121,8 +122,8 @@ export default class Pimple<T> implements Container<T>
     /**
      * Register a protected function
      */
-    public protect<K extends ServiceKey<T>>(key: K, service: T[K]): () => T[K] {
-        return () => service;
+    public protect<K extends ServiceKey<T>>(func: T[K]): () => T[K] {
+        return () => func;
     }
 
     /**
