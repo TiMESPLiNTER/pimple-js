@@ -1,10 +1,12 @@
 import Container, { ServiceKey } from "./container";
 import ServiceProvider from "./serviceProvider";
 /** Declaration types */
-type ProviderDeclaration<T> = Function | ServiceProvider<T>;
+type ServiceProviderFunction<T> = (container: Pimple<T>) => void;
+type ProviderDeclaration<T> = ServiceProviderFunction<T> | ServiceProvider<T>;
 type LazyServiceDefinition<T, S> = (container: Pimple<T>) => S;
 type ProtectedServiceDefinition<T, S> = () => LazyServiceDefinition<T, S>;
-type ServiceDefinition<T, S> = LazyServiceDefinition<T, S> | ProtectedServiceDefinition<T, S> | S;
+type PlainServiceDefinition<S> = S extends Function ? () => S : S;
+type ServiceDefinition<T, S> = PlainServiceDefinition<S> | LazyServiceDefinition<T, S> | ProtectedServiceDefinition<T, S> | (S extends Function ? () => S : S);
 type ServiceMap<T> = {
     [key in ServiceKey<T>]: ServiceDefinition<T, T[ServiceKey<T>]>;
 };
@@ -52,7 +54,7 @@ export default class Pimple<T> implements Container<T> {
     /**
      * Register a protected function
      */
-    protect<K extends ServiceKey<T>>(key: K, service: T[K]): () => T[K];
+    protect<T extends Function>(func: T): () => T;
     /**
      * Extend a service
      */
