@@ -1,11 +1,11 @@
 import Container, { ServiceKey } from "./container";
 import ServiceProvider from "./serviceProvider";
 /** Declaration types */
-declare type ProviderDeclaration<T> = Function | ServiceProvider<T>;
-declare type LazyServiceDefinition<T, S> = (container: Pimple<T>) => S;
-declare type ProtectedServiceDefinition<T, S> = () => LazyServiceDefinition<T, S>;
-declare type ServiceDefinition<T, S> = LazyServiceDefinition<T, S> | ProtectedServiceDefinition<T, S> | S;
-declare type ServiceMap<T> = {
+type ProviderDeclaration<T> = Function | ServiceProvider<T>;
+type LazyServiceDefinition<T, S> = (container: Pimple<T>) => S;
+type ProtectedServiceDefinition<T, S> = () => LazyServiceDefinition<T, S>;
+type ServiceDefinition<T, S> = LazyServiceDefinition<T, S> | ProtectedServiceDefinition<T, S> | S;
+type ServiceMap<T> = {
     [key in ServiceKey<T>]: ServiceDefinition<T, T[ServiceKey<T>]>;
 };
 /**

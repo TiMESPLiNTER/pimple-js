@@ -130,7 +130,7 @@ export default class Pimple<T> implements Container<T>
      */
     public extend<K extends ServiceKey<T>>(serviceName: K, service: Function): Function {
         if (!this._definitions[serviceName]) {
-            throw new RangeError(`Definition with "${serviceName}" not defined in container.`);
+            throw new RangeError(`Definition with "${serviceName.toString()}" not defined in container.`);
         }
 
         let def = this._definitions[serviceName];
