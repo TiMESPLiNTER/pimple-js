@@ -1,8 +1,8 @@
-import ServiceProvider from './serviceProvider';
+export type ServiceKey<T> = keyof T;
 
-export default interface Container 
+export default interface Container<T>
 {
-    get(service: string): any;
+    get<K extends ServiceKey<T>>(key: K): T[K];
 
-    has(service: string): boolean;
+    has<K extends ServiceKey<T>>(key: K): boolean;
 }

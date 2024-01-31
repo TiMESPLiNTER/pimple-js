@@ -9,13 +9,22 @@ and the original PHP Pimple container by Fabien Potencier.
 
 ## Usage
 
-```js
+```ts
 import Pimple from '@timesplinter/pimple';
 
-const container: Container = new Pimple({env: 'dev'});
+type ServiceMap = {
+   'foo': string, 
+   'bar': string,
+};
 
-container.set('foo', (container: Pimple) => {
-    return `bar (${container.get('env')})`;
+const container: Container = new Pimple<ServiceMap>({env: 'dev'});
+
+container.set('foo', () => {
+    return `baz (${container.get('env')})`;
+});
+
+container.set('bar', (container: Pimple<ServiceMap>) => {
+    return `bar: ${container.get('foo')}`;
 });
 
 console.log(container.get('foo')); // 'bar (dev)';

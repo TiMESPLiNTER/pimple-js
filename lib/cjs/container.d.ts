@@ -1,4 +1,5 @@
-export default interface Container {
-    get(service: string): any;
-    has(service: string): boolean;
+export type ServiceKey<T> = keyof T;
+export default interface Container<T> {
+    get<K extends ServiceKey<T>>(key: K): T[K];
+    has<K extends ServiceKey<T>>(key: K): boolean;
 }
