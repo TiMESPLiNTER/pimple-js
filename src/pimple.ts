@@ -4,7 +4,8 @@ import Container, {ServiceKey} from "./container";
 import ServiceProvider from "./serviceProvider";
 
 /** Declaration types */
-type ProviderDeclaration<T> = (container: Pimple<T>) => void|ServiceProvider<T>;
+type ServiceProviderFunction<T> = (container: Pimple<T>) => void;
+type ProviderDeclaration<T> = ServiceProviderFunction<T>|ServiceProvider<T>;
 type LazyServiceDefinition<T, S> = (container: Pimple<T>) => S;
 type ProtectedServiceDefinition<T, S> = () => LazyServiceDefinition<T, S>;
 type PlainServiceDefinition<S> = S extends Function ? () => S : S; // If a function, it needs to be wrapped/protected
@@ -161,7 +162,7 @@ export default class Pimple<T> implements Container<T>
     public register(provider: ProviderDeclaration<T>): Pimple<T> {
         if (this.instanceOfServiceProvider(provider) && provider.register instanceof Function) {
             provider.register(this);
-        } else {
+        } else if (provider instanceof Function) {
             provider(this);
         }
 
