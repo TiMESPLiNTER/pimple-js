@@ -10,7 +10,10 @@ const config: Config = {
             "lines": 93,
             "statements": 93
         }
-    }
+    },
+    collectCoverageFrom: [
+        "src/**/*"
+    ],
 };
 
 export default config;
