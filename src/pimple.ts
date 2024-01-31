@@ -123,7 +123,7 @@ export default class Pimple<T> implements Container<T>
     /**
      * Register a protected function
      */
-    public protect<K extends ServiceKey<T>>(func: T[K]): () => T[K] {
+    public protect<T extends Function>(func: T): () => T {
         return () => func;
     }
 

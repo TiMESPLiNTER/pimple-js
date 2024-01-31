@@ -1,4 +1,5 @@
 import Pimple from '../src/pimple';
+import {ServiceProvider} from "../src/index.js";
 
 describe('pimple container', () => {
     it('returns container version', async () => {
@@ -75,6 +76,7 @@ describe('pimple container', () => {
     it('protects function', async () => {
         type ServiceMap = {
             foo: () => string,
+            baz: () => string,
             untyped: Function,
         };
 
@@ -83,10 +85,12 @@ describe('pimple container', () => {
         const typeProtectedFunction = () => 'baz';
         const untypedProtectedFunction = () => 42;
 
-        container.set('foo', container.protect('foo', typeProtectedFunction));
-        container.set('untyped', container.protect('untyped', untypedProtectedFunction));
+        container.set('foo', container.protect(typeProtectedFunction));
+        container.set('baz', () => typeProtectedFunction);
+        container.set('untyped', container.protect(untypedProtectedFunction));
 
         expect(container.get('foo')).toBe(typeProtectedFunction);
+        expect(container.get('baz')).toBe(typeProtectedFunction);
         expect(container.get('untyped')).toBe(untypedProtectedFunction);
     });
 
@@ -113,7 +117,7 @@ describe('pimple container', () => {
 
         const container = new Pimple<ServiceMap>();
 
-        const serviceProviderMock = {
+        const serviceProviderMock: ServiceProvider<ServiceMap> = {
             register: (container: Pimple<ServiceMap>) => {
                 container.set('foo', () => {
                     return 'baz'
