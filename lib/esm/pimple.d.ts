@@ -1,8 +1,13 @@
-import Container from "./container";
+import Container, { ServiceKey } from "./container";
 import ServiceProvider from "./serviceProvider";
 /** Declaration types */
-declare type ServiceDeclaration = Function | Object;
-declare type ProviderDeclaration = Function | ServiceProvider;
+declare type ProviderDeclaration<T> = Function | ServiceProvider<T>;
+declare type LazyServiceDefinition<T, S> = (container: Pimple<T>) => S;
+declare type ProtectedServiceDefinition<T, S> = () => LazyServiceDefinition<T, S>;
+declare type ServiceDefinition<T, S> = LazyServiceDefinition<T, S> | ProtectedServiceDefinition<T, S> | S;
+declare type ServiceMap<T> = {
+    [key in ServiceKey<T>]: ServiceDefinition<T, T[ServiceKey<T>]>;
+};
 /**
  * Pimple dependency injection container
  *
@@ -12,7 +17,7 @@ declare type ProviderDeclaration = Function | ServiceProvider;
  * @license LGPL
  * @version 3.0.0
  */
-export default class Pimple implements Container {
+export default class Pimple<T> implements Container<T> {
     /**
      * @type {string}
      */
@@ -27,41 +32,39 @@ export default class Pimple implements Container {
      * @private
      */
     private _raw;
-    constructor(services?: {
-        [key: string]: any;
-    });
+    constructor(services?: Partial<ServiceMap<T>>);
     /**
      * Define a service
      */
-    set(name: string, service: ServiceDeclaration): Pimple;
+    set<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T, T[K]>): Pimple<T>;
     /**
      * Register a factory
      */
-    factory(name: string, callback: Function): Pimple;
+    factory<K extends ServiceKey<T>>(name: K, callback: ServiceDefinition<T, T[K]>): Pimple<T>;
     /**
      * Get a service instance
      */
-    get(name: string): any;
+    get<K extends ServiceKey<T>>(name: K): T[K];
     /**
      * Checks whether a service is registered or not
      */
-    has(service: string): boolean;
+    has<K extends ServiceKey<T>>(name: K): boolean;
     /**
      * Register a protected function
      */
-    protect(service: Function): Function;
+    protect<K extends ServiceKey<T>>(key: K, service: T[K]): () => T[K];
     /**
      * Extend a service
      */
-    extend(serviceName: string, service: Function): Function;
+    extend<K extends ServiceKey<T>>(serviceName: K, service: Function): Function;
     /**
      * Get a service raw definition
      */
-    raw(name: string): Function;
+    raw<K extends ServiceKey<T>>(name: K): ServiceDefinition<T, T[K]>;
     /**
      * Register a service provider
      */
-    register(provider: ProviderDeclaration): Pimple;
+    register(provider: ProviderDeclaration<T>): Pimple<T>;
     private instanceOfServiceProvider;
 }
 export {};
