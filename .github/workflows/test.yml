@@ -10,4 +10,4 @@ jobs:
       - name: Install modules
         run: npm install
       - name: Run coverage
-        run: npm test:cov
+        run: npm run test:cov
