@@ -6,7 +6,7 @@ type ProviderDeclaration<T> = ServiceProviderFunction<T> | ServiceProvider<T>;
 type LazyServiceDefinition<T, S> = (container: Pimple<T>) => S;
 type ProtectedServiceDefinition<T, S> = () => LazyServiceDefinition<T, S>;
 type PlainServiceDefinition<S> = S extends Function ? () => S : S;
-type ServiceDefinition<T, S> = PlainServiceDefinition<S> | LazyServiceDefinition<T, S> | ProtectedServiceDefinition<T, S> | (S extends Function ? () => S : S);
+type ServiceDefinition<T, S> = PlainServiceDefinition<S> | LazyServiceDefinition<T, S> | ProtectedServiceDefinition<T, S>;
 type ServiceMap<T> = {
     [key in ServiceKey<T>]: ServiceDefinition<T, T[ServiceKey<T>]>;
 };
