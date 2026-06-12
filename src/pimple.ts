@@ -28,26 +28,17 @@ const reservedProperties: string[] = [
  * @copyright 2016 SerafimArts <nesk@xakep.ru>
  * @copyright 2021 TiMESPLiNTER <dev@timesplinter.ch>
  * @license LGPL
- * @version 3.0.0
+ * @version 2.1.0
  */
 export default class Pimple<T> implements Container<T>
 {
-    /**
-     * @type {string}
-     */
-    static get VERSION() { return '3.0.0'; }
+    static get VERSION() { return '2.1.0'; }
 
-    /**
-     * @type {{}}
-     * @private
-     */
     private _definitions: Partial<ServiceMap<T>> = {};
 
-    /**
-     * @type {{}}
-     * @private
-     */
     private _raw: Partial<ServiceMap<T>> = {};
+
+    private _resolved: Set<string | number | symbol> = new Set();
 
     constructor(services: Partial<ServiceMap<T>> = {}) {
         Object.keys(services).forEach((service) => {
@@ -57,9 +48,33 @@ export default class Pimple<T> implements Container<T>
     }
 
     /**
-     * Define a service
+     * Define a service (first-time registration only)
      */
     public set<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T,T[K]>): Pimple<T>
+    {
+        if (this.has(name)) {
+            throw new Error(`Service "${name.toString()}" is already defined. Use replace() to overwrite it.`);
+        }
+
+        return this.define(name, service);
+    }
+
+    /**
+     * Replace an existing service definition before it has been resolved
+     */
+    public replace<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T,T[K]>): Pimple<T>
+    {
+        if (!this.has(name)) {
+            throw new RangeError(`Service "${name.toString()}" is not defined in the container.`);
+        }
+        if (this._resolved.has(name)) {
+            throw new Error(`Service "${name.toString()}" has already been resolved and cannot be replaced.`);
+        }
+
+        return this.define(name, service);
+    }
+
+    private define<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T,T[K]>): Pimple<T>
     {
         this._raw[name] = service;
 
@@ -76,6 +91,7 @@ export default class Pimple<T> implements Container<T>
 
         if (reservedProperties.indexOf(name.toString()) === -1) {
             Object.defineProperty(this, name, {
+                configurable: true,
                 get: () => {
                     return this.get(name);
                 }
@@ -94,6 +110,7 @@ export default class Pimple<T> implements Container<T>
 
         if (reservedProperties.indexOf(name.toString()) === -1) {
             Object.defineProperty(this, name, {
+                configurable: true,
                 get: () => {
                     return this.get(name);
                 }
@@ -108,6 +125,7 @@ export default class Pimple<T> implements Container<T>
      */
     public get<K extends ServiceKey<T>>(name: K): T[K] {
         if (this._definitions[name] instanceof Function) {
+            this._resolved.add(name);
             return (this._definitions[name] as LazyServiceDefinition<T, T[K]>)(this);
         }
         return this._definitions[name] as T[K];
