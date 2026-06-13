@@ -17,28 +17,24 @@ type ServiceMap<T> = {
  * @copyright 2016 SerafimArts <nesk@xakep.ru>
  * @copyright 2021 TiMESPLiNTER <dev@timesplinter.ch>
  * @license LGPL
- * @version 3.0.0
+ * @version 2.1.0
  */
 export default class Pimple<T> implements Container<T> {
-    /**
-     * @type {string}
-     */
     static get VERSION(): string;
-    /**
-     * @type {{}}
-     * @private
-     */
     private _definitions;
-    /**
-     * @type {{}}
-     * @private
-     */
     private _raw;
+    private _resolved;
+    private _resolving;
     constructor(services?: Partial<ServiceMap<T>>);
     /**
-     * Define a service
+     * Define a service (first-time registration only)
      */
     set<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T, T[K]>): Pimple<T>;
+    /**
+     * Replace an existing service definition before it has been resolved
+     */
+    replace<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T, T[K]>): Pimple<T>;
+    private define;
     /**
      * Register a factory
      */

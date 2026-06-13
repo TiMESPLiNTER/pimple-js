@@ -38,7 +38,9 @@ export default class Pimple<T> implements Container<T>
 
     private _raw: Partial<ServiceMap<T>> = {};
 
-    private _resolved: Set<string | number | symbol> = new Set();
+    private _resolved: Map<string | number | symbol, string | number | symbol | null> = new Map();
+
+    private _resolving: (string | number | symbol)[] = [];
 
     constructor(services: Partial<ServiceMap<T>> = {}) {
         Object.keys(services).forEach((service) => {
@@ -68,7 +70,13 @@ export default class Pimple<T> implements Container<T>
             throw new RangeError(`Service "${name.toString()}" is not defined in the container.`);
         }
         if (this._resolved.has(name)) {
-            throw new Error(`Service "${name.toString()}" has already been resolved and cannot be replaced.`);
+            const trace: string[] = [];
+            let current: string | number | symbol | null = name;
+            while (current !== null) {
+                trace.unshift(current.toString());
+                current = this._resolved.get(current) ?? null;
+            }
+            throw new Error(`Service "${name.toString()}" has already been resolved and cannot be replaced. Resolution trace: ${trace.join(' → ')}`);
         }
 
         return this.define(name, service);
@@ -125,8 +133,19 @@ export default class Pimple<T> implements Container<T>
      */
     public get<K extends ServiceKey<T>>(name: K): T[K] {
         if (this._definitions[name] instanceof Function) {
-            this._resolved.add(name);
-            return (this._definitions[name] as LazyServiceDefinition<T, T[K]>)(this);
+            const firstResolution = !this._resolved.has(name);
+            if (firstResolution) {
+                const parent = this._resolving.length > 0 ? this._resolving[this._resolving.length - 1] : null;
+                this._resolved.set(name, parent);
+                this._resolving.push(name);
+            }
+            try {
+                return (this._definitions[name] as LazyServiceDefinition<T, T[K]>)(this);
+            } finally {
+                if (firstResolution) {
+                    this._resolving.pop();
+                }
+            }
         }
         return this._definitions[name] as T[K];
     }

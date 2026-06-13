@@ -211,7 +211,25 @@ describe('pimple container', () => {
 
         expect(() => {
             container.replace('foo', () => 'replaced');
-        }).toThrow('Service "foo" has already been resolved and cannot be replaced.');
+        }).toThrow('Service "foo" has already been resolved and cannot be replaced. Resolution trace: foo');
+    });
+
+    it('includes resolution trace when replacing a transitively resolved service', () => {
+        type ServiceMap = {
+            app: string,
+            database: string,
+            logger: string,
+        }
+
+        const container = new Pimple<ServiceMap>();
+        container.set('logger', () => 'logger-instance');
+        container.set('database', (c) => `db-using-${c.get('logger')}`);
+        container.set('app', (c) => `app-using-${c.get('database')}`);
+        container.get('app');
+
+        expect(() => {
+            container.replace('logger', () => 'new-logger');
+        }).toThrow('Service "logger" has already been resolved and cannot be replaced. Resolution trace: app → database → logger');
     });
 
     it('throws when replacing a service that is not defined', () => {
