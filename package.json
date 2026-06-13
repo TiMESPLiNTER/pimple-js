@@ -4,6 +4,10 @@
   "version": "2.1.0",
   "module": "./lib/esm/index.js",
   "main": "./lib/cjs/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TiMESPLiNTER/pimple-js.git"
+  },
   "scripts": {
     "test": "jest",
     "test:cov": "jest --collect-coverage",
