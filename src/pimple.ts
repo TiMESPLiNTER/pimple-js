@@ -28,26 +28,19 @@ const reservedProperties: string[] = [
  * @copyright 2016 SerafimArts <nesk@xakep.ru>
  * @copyright 2021 TiMESPLiNTER <dev@timesplinter.ch>
  * @license LGPL
- * @version 3.0.0
+ * @version 2.1.0
  */
 export default class Pimple<T> implements Container<T>
 {
-    /**
-     * @type {string}
-     */
-    static get VERSION() { return '3.0.0'; }
+    static get VERSION() { return '2.1.0'; }
 
-    /**
-     * @type {{}}
-     * @private
-     */
     private _definitions: Partial<ServiceMap<T>> = {};
 
-    /**
-     * @type {{}}
-     * @private
-     */
     private _raw: Partial<ServiceMap<T>> = {};
+
+    private _resolved: Map<string | number | symbol, string | number | symbol | null> = new Map();
+
+    private _resolving: (string | number | symbol)[] = [];
 
     constructor(services: Partial<ServiceMap<T>> = {}) {
         Object.keys(services).forEach((service) => {
@@ -57,9 +50,39 @@ export default class Pimple<T> implements Container<T>
     }
 
     /**
-     * Define a service
+     * Define a service (first-time registration only)
      */
     public set<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T,T[K]>): Pimple<T>
+    {
+        if (this.has(name)) {
+            throw new Error(`Service "${name.toString()}" is already defined. Use replace() to overwrite it.`);
+        }
+
+        return this.define(name, service);
+    }
+
+    /**
+     * Replace an existing service definition before it has been resolved
+     */
+    public replace<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T,T[K]>): Pimple<T>
+    {
+        if (!this.has(name)) {
+            throw new RangeError(`Service "${name.toString()}" is not defined in the container.`);
+        }
+        if (this._resolved.has(name)) {
+            const trace: string[] = [];
+            let current: string | number | symbol | null = name;
+            while (current !== null) {
+                trace.unshift(current.toString());
+                current = this._resolved.get(current) ?? null;
+            }
+            throw new Error(`Service "${name.toString()}" has already been resolved and cannot be replaced. Resolution trace: ${trace.join(' → ')}`);
+        }
+
+        return this.define(name, service);
+    }
+
+    private define<K extends ServiceKey<T>>(name: K, service: ServiceDefinition<T,T[K]>): Pimple<T>
     {
         this._raw[name] = service;
 
@@ -76,6 +99,7 @@ export default class Pimple<T> implements Container<T>
 
         if (reservedProperties.indexOf(name.toString()) === -1) {
             Object.defineProperty(this, name, {
+                configurable: true,
                 get: () => {
                     return this.get(name);
                 }
@@ -94,6 +118,7 @@ export default class Pimple<T> implements Container<T>
 
         if (reservedProperties.indexOf(name.toString()) === -1) {
             Object.defineProperty(this, name, {
+                configurable: true,
                 get: () => {
                     return this.get(name);
                 }
@@ -108,7 +133,19 @@ export default class Pimple<T> implements Container<T>
      */
     public get<K extends ServiceKey<T>>(name: K): T[K] {
         if (this._definitions[name] instanceof Function) {
-            return (this._definitions[name] as LazyServiceDefinition<T, T[K]>)(this);
+            const firstResolution = !this._resolved.has(name);
+            if (firstResolution) {
+                const parent = this._resolving.length > 0 ? this._resolving[this._resolving.length - 1] : null;
+                this._resolved.set(name, parent);
+                this._resolving.push(name);
+            }
+            try {
+                return (this._definitions[name] as LazyServiceDefinition<T, T[K]>)(this);
+            } finally {
+                if (firstResolution) {
+                    this._resolving.pop();
+                }
+            }
         }
         return this._definitions[name] as T[K];
     }

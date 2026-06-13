@@ -1,9 +1,10 @@
 import Pimple from '../src/pimple';
 import {ServiceProvider} from "../src/index.js";
+import {describe, expect, it} from "@jest/globals";
 
 describe('pimple container', () => {
     it('returns container version', async () => {
-        expect(Pimple.VERSION).toBe('3.0.0');
+        expect(Pimple.VERSION).toBe('2.1.0');
     });
 
     it('stores values', async () => {
@@ -172,6 +173,75 @@ describe('pimple container', () => {
         expect(() => {
             container.extend('foo', () => {});
         }).toThrow('Definition with "foo" not defined in container.');
+    });
+
+    it('throws when calling set on an already defined service', () => {
+        type ServiceMap = {
+            foo: string,
+        }
+
+        const container = new Pimple<ServiceMap>();
+        container.set('foo', () => 'first');
+
+        expect(() => {
+            container.set('foo', () => 'second');
+        }).toThrow('Service "foo" is already defined. Use replace() to overwrite it.');
+    });
+
+    it('replaces a service before it is resolved', () => {
+        type ServiceMap = {
+            foo: string,
+        }
+
+        const container = new Pimple<ServiceMap>();
+        container.set('foo', () => 'original');
+        container.replace('foo', () => 'replaced');
+
+        expect(container.get('foo')).toBe('replaced');
+    });
+
+    it('throws when replacing a service that has already been resolved', () => {
+        type ServiceMap = {
+            foo: string,
+        }
+
+        const container = new Pimple<ServiceMap>();
+        container.set('foo', () => 'original');
+        container.get('foo');
+
+        expect(() => {
+            container.replace('foo', () => 'replaced');
+        }).toThrow('Service "foo" has already been resolved and cannot be replaced. Resolution trace: foo');
+    });
+
+    it('includes resolution trace when replacing a transitively resolved service', () => {
+        type ServiceMap = {
+            app: string,
+            database: string,
+            logger: string,
+        }
+
+        const container = new Pimple<ServiceMap>();
+        container.set('logger', () => 'logger-instance');
+        container.set('database', (c) => `db-using-${c.get('logger')}`);
+        container.set('app', (c) => `app-using-${c.get('database')}`);
+        container.get('app');
+
+        expect(() => {
+            container.replace('logger', () => 'new-logger');
+        }).toThrow('Service "logger" has already been resolved and cannot be replaced. Resolution trace: app → database → logger');
+    });
+
+    it('throws when replacing a service that is not defined', () => {
+        type ServiceMap = {
+            foo: string,
+        }
+
+        const container = new Pimple<ServiceMap>();
+
+        expect(() => {
+            container.replace('foo', () => 'replaced');
+        }).toThrow('Service "foo" is not defined in the container.');
     });
 
     it('extends service', () => {
