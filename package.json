@@ -9,8 +9,11 @@
     "test:cov": "jest --collect-coverage",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig-cjs.json",
     "transpile": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
-    "prepublish": "npm run transpile"
+    "prepublishOnly": "npm run transpile"
   },
+  "files": [
+    "lib/"
+  ],
   "keywords": [],
   "author": "Pascal Münst <dev@timesplinter.ch>",
   "description": "A simple dependency-injection container written in TypeScript based on PHP's Pimple",
